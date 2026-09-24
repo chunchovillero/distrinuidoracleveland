@@ -142,10 +142,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:superadmin,adm
     Route::get('/api/products/{id}/details', [SaleController::class, 'getProductDetails'])->name('products.details');
 
     // Rutas solo para administradores (gestión de usuarios)
+    Route::get('profile', fn () => app(UserController::class)->edit(auth()->user()))->name('profile');
+    Route::put('profile', fn (IlluminateHttpRequest $request) => app(UserController::class)->update($request, auth()->user()))->name('profile.update');
+
     Route::middleware('role:superadmin')->group(function () {
         // Gestión de usuarios
         Route::resource('users', UserController::class);
-        Route::get('profile', fn () => redirect()->route('admin.users.edit', auth()->user()))->name('profile');
         Route::get('users/role/{role}', [UserController::class, 'byRole'])->name('users.by-role');
         
         // Gestión de permisos de usuarios

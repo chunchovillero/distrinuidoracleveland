@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     
-                    <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route($user->id === auth()->id() ? 'admin.profile.update' : 'admin.users.update', $user) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         
