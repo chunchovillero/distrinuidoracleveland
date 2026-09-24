@@ -39,9 +39,7 @@ class ReportController extends Controller
             ->groupBy('seller_id')
             ->map(function ($sales) {
                 $totalSales = $sales->sum('total');
-                $totalCommission = $sales->sum(function($sale) {
-                    return $totalSales * ($sale->seller->commission_percentage / 100);
-                });
+                $totalCommission = $sales->sum('total_commission');
                 
                 return [
                     'name' => $sales->first()->seller->name,
@@ -366,20 +364,17 @@ class ReportController extends Controller
      */
     public function calidadReport()
     {
+        $dateFrom = request("date_from", now()->startOfMonth()->toDateString());
+        $dateTo = request("date_to", now()->toDateString());
         // Estadísticas generales
         $totalProducts = Product::count();
         $productsWithCalidad = Product::whereNotNull('calidad_id')->count();
         $productsWithoutCalidad = $totalProducts - $productsWithCalidad;
 
         // Productos por calidad
-        $productsByCalidad = \App\Models\Calidad::withCount('products')
-            ->with(['products' => function($query) {
-                $query->select('calidad_id', 'stock', 'price')
-                      ->selectRaw('SUM(stock) as total_stock')
-                      ->selectRaw('SUM(stock * price) as total_value')
-                      ->groupBy('calidad_id');
-            }])
-            ->get();
+        $productsByCalidad = \App\Models\Calidad::withCount('products')->get();
+        $salesByCalidad = DB::table('sale_details')->join('sales', 'sale_details.sale_id', '=', 'sales.id')->join('products', 'sale_details.product_id', '=', 'products.id')->leftJoin('calidad', 'products.calidad_id', '=', 'calidad.id')->where('sales.status', 'completed')->whereBetween('sales.sale_date', [$dateFrom, $dateTo . ' 23:59:59'])->select('products.calidad_id', 'calidad.nombre as calidad_nombre')->selectRaw('SUM(sale_details.quantity) as quantity_sold')->selectRaw('SUM(sale_details.subtotal) as total_sales')->groupBy('products.calidad_id', 'calidad.nombre')->orderByDesc('quantity_sold')->get();
+
 
         // Datos para el gráfico de distribución
         $chartData = [];
@@ -431,7 +426,10 @@ class ReportController extends Controller
             'chartColors',
             'topProducts',
             'stockByCalidad',
-            'lowStockByCalidad'
+            'lowStockByCalidad',
+            'salesByCalidad',
+            'dateFrom',
+            'dateTo'
         ));
     }
 }

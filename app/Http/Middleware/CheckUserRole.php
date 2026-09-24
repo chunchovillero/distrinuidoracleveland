@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckUserRole
@@ -16,7 +17,7 @@ class CheckUserRole
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check()) {
-            return redirect('/login');
+            return redirect('/admin/login');
         }
 
         $user = auth()->user();
@@ -27,11 +28,26 @@ class CheckUserRole
         }
 
         // Verificar si el usuario tiene alguno de los roles permitidos
-        if (in_array($user->role, $roles)) {
+        if ($user->active && in_array($user->role, $roles, true)) {
             return $next($request);
         }
 
-        // Si no tiene permisos, redirigir con error
-        return redirect()->route('admin.dashboard')->with('error', 'No tienes permisos para acceder a esta sección.');
+        // Un administrador válido puede carecer de acceso a una sección
+        // exclusiva del superadministrador sin perder su sesión.
+        if ($user->active && $user->isAdmin()) {
+            return response()->view('errors.403', [
+                'message' => 'No tienes permisos para acceder a esta sección.',
+            ], 403);
+        }
+
+        // Cerrar sesiones de roles sin acceso al panel. Nunca redirigir al
+        // dashboard protegido, porque eso genera un bucle de redirecciones.
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->view('errors.403', [
+            'message' => 'No tienes permisos para acceder al panel administrativo.',
+        ], 403);
     }
 }

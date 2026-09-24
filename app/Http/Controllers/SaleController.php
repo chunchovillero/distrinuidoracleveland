@@ -8,8 +8,12 @@ use App\Models\Seller;
 use App\Models\Product;
 use App\Models\SaleDetail;
 use App\Models\ExportConfiguration;
+use App\Models\DispatchType;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -19,13 +23,27 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class SaleController extends Controller
 {
+    private function sellerForUser(User $user): Seller
+    {
+        return Seller::firstOrCreate(
+            ['email' => $user->email],
+            ['name' => $user->name, 'active' => true]
+        );
+    }
+
+    private function canManageAuthorization(): bool
+    {
+        return auth()->user()->isAdmin();
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Sale::with(['customer', 'seller']);
-        
+        $query = Sale::with(['customer', 'seller', 'createdBy']);
+        if (auth()->user()->isSeller()) {
+            $query->where('created_by_user_id', auth()->id());
+        }
         // Filtro por rango de fechas
         if ($request->filled('date_from')) {
             $query->where('sale_date', '>=', $request->date_from);
@@ -58,7 +76,9 @@ class SaleController extends Controller
         $sales = $query->latest('sale_date')->get();
         
         // Datos para los filtros
-        $sellers = Seller::where('active', true)->get();
+        $sellers = auth()->user()->isSeller()
+            ? collect([$this->sellerForUser(auth()->user())])
+            : Seller::where('active', true)->get();
         $customers = Customer::where('active', true)->get();
         
         return view('sales.index', compact('sales', 'sellers', 'customers'));
@@ -70,10 +90,13 @@ class SaleController extends Controller
     public function create()
     {
         $customers = Customer::where('active', true)->get();
-        $sellers = Seller::where('active', true)->get();
+        $sellers = auth()->user()->isSeller()
+            ? collect([$this->sellerForUser(auth()->user())])
+            : Seller::where('active', true)->get();
         $products = Product::where('active', true)->where('stock', '>', 0)->get();
+        $dispatchTypes = DispatchType::where('active', true)->orderBy('name')->get();
         
-        return view('sales.create', compact('customers', 'sellers', 'products'));
+        return view('sales.create', compact('customers', 'sellers', 'products', 'dispatchTypes'));
     }
 
     /**
@@ -83,30 +106,46 @@ class SaleController extends Controller
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'seller_id' => 'required|exists:sellers,id',
+            'seller_id' => auth()->user()->isSeller() ? 'nullable|exists:sellers,id' : 'required|exists:sellers,id',
             'sale_date' => 'required|date',
             'payment_method' => 'required|in:cash,card,transfer,check',
+            'dispatch_type_id' => ['required', Rule::exists('dispatch_types', 'id')->where('active', true)],
+            'dispatch_address' => 'nullable|string|max:191',
             'notes' => 'nullable',
             'products' => 'required|array|min:1',
             'products.*.id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1'
         ]);
 
+        $dispatchType = DispatchType::whereKey($request->dispatch_type_id)->where('active', true)->firstOrFail();
+        if ($dispatchType->requires_address && ! $request->filled('dispatch_address')) {
+            return redirect()->back()->withInput()->withErrors([
+                'dispatch_address' => 'La dirección de despacho es obligatoria para este tipo de despacho.',
+            ]);
+        }
+
+        $seller = auth()->user()->isSeller()
+            ? $this->sellerForUser(auth()->user())
+            : Seller::findOrFail($request->seller_id);
+        $requiresAuthorization = auth()->user()->isSeller();
         DB::beginTransaction();
         try {
             // Crear la venta
             $sale = Sale::create([
                 'invoice_number' => Sale::generateInvoiceNumber(),
                 'customer_id' => $request->customer_id,
-                'seller_id' => $request->seller_id,
+                'seller_id' => $seller->id,
+                'created_by_user_id' => auth()->id(),
                 'sale_date' => $request->sale_date,
                 'payment_method' => $request->payment_method,
+                'dispatch_type_id' => $dispatchType->id,
+                'dispatch_address' => $request->dispatch_address,
                 'notes' => $request->notes,
                 'subtotal' => 0,
                 'tax' => 0,
                 'total' => 0,
                 'total_commission' => 0,
-                'status' => 'completed'
+                'status' => $requiresAuthorization ? 'pending_authorization' : 'completed'
             ]);
 
             $subtotal = 0;
@@ -123,20 +162,23 @@ class SaleController extends Controller
 
                 // Crear detalle de venta
                 $subtotalDetail = $product->price * $productData['quantity'];
-                $commissionAmount = ($subtotalDetail * $product->commission) / 100;
+                $commissionAmount = (float) $product->commission * (int) $productData['quantity'];
                 
                 $saleDetail = SaleDetail::create([
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
                     'quantity' => $productData['quantity'],
                     'unit_price' => $product->price,
-                    'commission_percentage' => $product->commission,
+                    'commission_unit_price' => $product->commission,
+                    'commission_percentage' => 0,
                     'commission_amount' => $commissionAmount,
                     'subtotal' => $subtotalDetail
                 ]);
 
-                // Reducir stock del producto
-                $product->reduceStock($productData['quantity']);
+                // Las ventas de vendedores esperan autorización antes de descontar stock.
+                if (! $requiresAuthorization) {
+                    $product->reduceStock($productData['quantity']);
+                }
 
                 $subtotal += $saleDetail->subtotal;
                 $totalCommission += $saleDetail->commission_amount;
@@ -163,8 +205,46 @@ class SaleController extends Controller
      */
     public function show(Sale $sale)
     {
-        $sale->load(['customer', 'seller', 'saleDetails.product']);
+        abort_if(auth()->user()->isSeller() && $sale->created_by_user_id !== auth()->id(), 403);
+        $sale->load(['customer', 'seller', 'dispatchType', 'saleDetails.product']);
         return view('sales.show', compact('sale'));
+    }
+
+    public function pdf(Sale $sale)
+    {
+        abort_if(auth()->user()->isSeller() && $sale->created_by_user_id !== auth()->id(), 403);
+        $sale->load(['customer', 'seller', 'dispatchType', 'saleDetails.product']);
+
+        return Pdf::loadView('sales.pdf', compact('sale'))
+            ->setPaper('a4')
+            ->download('venta-' . $sale->invoice_number . '.pdf');
+    }
+    /**
+     * Authorize a seller sale and discount stock.
+     */
+    public function authorizeSale(Sale $sale)
+    {
+        abort_unless($this->canManageAuthorization(), 403);
+        if ($sale->status !== 'pending_authorization') {
+            return redirect()->back()->with('error', 'Esta venta no está esperando autorización.');
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($sale->saleDetails as $detail) {
+                $product = $detail->product()->lockForUpdate()->first();
+                if ($product->stock < $detail->quantity) {
+                    throw new \RuntimeException("Stock insuficiente para autorizar: {$product->name}");
+                }
+                $product->reduceStock($detail->quantity);
+            }
+            $sale->update(['status' => 'completed']);
+            DB::commit();
+            return redirect()->route('admin.sales.show', $sale)->with('success', 'Venta autorizada y stock descontado.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'No se pudo autorizar la venta: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -173,13 +253,19 @@ class SaleController extends Controller
     public function duplicate(Sale $sale)
     {
         $customers = Customer::where('active', true)->get();
-        $sellers = Seller::where('active', true)->get();
+        $sellers = auth()->user()->isSeller()
+            ? collect([$this->sellerForUser(auth()->user())])
+            : Seller::where('active', true)->get();
         $products = Product::where('active', true)->where('stock', '>', 0)->get();
+        $dispatchTypes = DispatchType::where('active', true)
+            ->orWhere('id', $sale->dispatch_type_id)
+            ->orderBy('name')
+            ->get();
         
         // Obtener los productos de la venta original
         $originalProducts = $sale->saleDetails()->with('product')->get();
         
-        return view('sales.create', compact('customers', 'sellers', 'products', 'sale', 'originalProducts'));
+        return view('sales.create', compact('customers', 'sellers', 'products', 'dispatchTypes', 'sale', 'originalProducts'));
     }
 
     /**
@@ -190,6 +276,7 @@ class SaleController extends Controller
         if ($sale->status === 'cancelled') {
             return redirect()->back()->with('error', 'La venta ya está cancelada.');
         }
+
 
         DB::beginTransaction();
         try {
@@ -297,7 +384,7 @@ class SaleController extends Controller
             $filters = $request->except(['export_type', 'fields', '_token']);
             
             // Construir query con filtros
-            $query = Sale::with(['customer', 'seller', 'saleDetails.product']);
+        $query = Sale::with(['customer', 'seller', 'createdBy']);
             
             if (!empty($filters['date_from'])) {
                 $query->where('sale_date', '>=', $filters['date_from']);

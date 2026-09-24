@@ -147,7 +147,7 @@
                                     <span class="badge badge-success">{{ $product->stock }}</span>
                                 @endif
                             </td>
-                            <td>{{ number_format($product->commission, 2) }}%</td>
+                            <td>${{ number_format($product->commission, 0, ",", ".") }}</td>
                             <td>
                                 @if($product->active)
                                     <span class="badge badge-success">Activo</span>

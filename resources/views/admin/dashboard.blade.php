@@ -19,7 +19,8 @@
 
 @section('content')
     <div class="container-fluid">
-        <!-- Stats Cards -->
+        <!-- Estadísticas de usuarios: exclusivas del superadministrador -->
+        @if(auth()->user()->isSuperAdmin())
         <div class="row">
             <!-- Total Users -->
             <div class="col-lg-3 col-6">
@@ -85,6 +86,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Dashboard Content -->
         <div class="row">
@@ -175,7 +177,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            @if(auth()->user()->canManageUsers())
+                            @if(auth()->user()->isSuperAdmin())
                                 <div class="col-md-3">
                                     <a href="{{ route('admin.users.create') }}" class="btn btn-app">
                                         <i class="fas fa-user-plus"></i>

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -48,13 +47,25 @@ class LoginController extends Controller
         
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             file_put_contents($logFile, "Auth SUCCESS - User ID: " . Auth::id() . "\n", FILE_APPEND);
+
+            if (!Auth::user()->active || (!Auth::user()->isAdmin() && !Auth::user()->isSeller())) {
+                file_put_contents($logFile, "Auth REJECTED - User is inactive or is not an administrator\n", FILE_APPEND);
+
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return response()->view('errors.403', [
+                    'message' => 'El acceso está habilitado únicamente para usuarios autorizados y activos.',
+                ], 403);
+            }
             
             $request->session()->regenerate();
             
             file_put_contents($logFile, "Session regenerated - Redirecting to /admin\n", FILE_APPEND);
             
             // Forzar redirección explícita
-            return redirect('/admin')->with('success', 'Login exitoso');
+            return redirect()->intended(Auth::user()->isSeller() ? '/admin/sales' : '/admin')->with('success', 'Login exitoso');
         }
 
         file_put_contents($logFile, "Auth FAILED - Invalid credentials\n", FILE_APPEND);
@@ -70,7 +81,7 @@ class LoginController extends Controller
         $this->clearLoginAttempts($request);
         
         error_log("sendLoginResponse - Redirecting to /admin");
-        return redirect()->intended('/admin');
+        return redirect()->intended(Auth::user()->isSeller() ? '/admin/sales' : '/admin');
     }
 
     public function logout(Request $request)

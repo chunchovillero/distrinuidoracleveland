@@ -7,6 +7,8 @@
 @stop
 
 @section('content')
+    @if(session('success'))<div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>¡Éxito!</strong> {{ session('success') }}</div>@endif
+    @if(session('error'))<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> {{ session('error') }}</div>@endif
     <!-- Filtros -->
     <div class="card collapsed-card">
         <div class="card-header">
@@ -63,6 +65,7 @@
                             <select name="status" class="form-control">
                                 <option value="">Todos</option>
                                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completadas</option>
+                                <option value="pending_authorization" {{ request('status') == 'pending_authorization' ? 'selected' : '' }}>En espera de autorización</option>
                                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendientes</option>
                                 <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Canceladas</option>
                             </select>
@@ -104,9 +107,11 @@
                     <button type="button" class="btn btn-info btn-sm" disabled title="Solo administradores">
                         <i class="fas fa-file-excel"></i> Exportar Excel - Secretaría
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm" disabled title="Solo administradores">
+                @endcan
+                @can('create-sales')
+                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus"></i> Nueva Venta
-                    </button>
+                    </a>
                 @endcan
             </div>
         </div>
@@ -140,7 +145,9 @@
                                 </td>
                                 <td>{{ $sale->customer->name }}</td>
                                 <td>{{ $sale->seller->name }}</td>
-                                <td>{{ $sale->sale_date->format('d/m/Y') }}</td>
+                                <td data-order="{{ $sale->sale_date->format('Y-m-d') }}">
+                                    {{ $sale->sale_date->format('d/m/Y') }}
+                                </td>
                                 <td>
                                     <span class="badge badge-info">
                                         ${{ number_format($sale->total, 0, ',', '.') }}
@@ -154,6 +161,8 @@
                                 <td>
                                     @if($sale->status == 'completed')
                                         <span class="badge badge-success">Completada</span>
+                                    @elseif($sale->status == 'pending_authorization')
+                                        <span class="badge badge-warning">En espera de autorización</span>
                                     @elseif($sale->status == 'pending')
                                         <span class="badge badge-warning">Pendiente</span>
                                     @else
@@ -165,6 +174,7 @@
                                         <a href="{{ route('admin.sales.show', $sale) }}" class="btn btn-info btn-sm" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @if(!auth()->user()->isSeller())
                                         <a href="{{ route('admin.sales.duplicate', $sale) }}" class="btn btn-secondary btn-sm" title="Duplicar venta">
                                             <i class="fas fa-copy"></i>
                                         </a>
@@ -178,6 +188,7 @@
                                                 </button>
                                             </form>
                                         @endif
+                                        @endif
                                         <form action="{{ route('admin.sales.destroy', $sale) }}" method="POST" style="display: inline;"
                                               onsubmit="return confirm('¿Está seguro de eliminar esta venta?')">
                                             @csrf
@@ -186,7 +197,12 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                    </div>
+                                        @if(auth()->user()->isAdmin() && $sale->status === 'pending_authorization')
+                                            <form action="{{ route('admin.sales.authorize', $sale) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Autorizar esta venta y descontar stock?')">
+                                                @csrf @method('PATCH')
+                                                <button type="submit" class="btn btn-success btn-sm" title="Autorizar venta"><i class="fas fa-check"></i></button>
+                                            </form>
+                                        @endif                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -279,7 +295,7 @@
                 "autoWidth": false,
                 "pageLength": 15,
                 "lengthMenu": [[10, 15, 25, 50, -1], [10, 15, 25, 50, "Todos"]],
-                "order": [[3, "desc"]], // Ordenar por fecha descendente
+                "order": [[3, "desc"]], // La fecha usa data-order en formato ISO.
                 "columnDefs": [
                     { "orderable": false, "targets": [-1] } // Última columna (acciones) no ordenable
                 ],
@@ -308,10 +324,6 @@
                         "sortDescending": ": Activar para ordenar la columna de manera descendente"
                     }
                 },
-                "order": [[ 3, "desc" ]], // Ordenar por fecha descendente
-                "columnDefs": [
-                    { "orderable": false, "targets": -1 } // Deshabilitar ordenación en última columna (acciones)
-                ]
             });
 
             // Limpiar filtros last_days cuando se selecciona fecha específica

@@ -77,6 +77,35 @@
                             </div>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dispatch_type_id">Tipo de despacho *</label>
+                                    <select class="form-control @error('dispatch_type_id') is-invalid @enderror" id="dispatch_type_id" name="dispatch_type_id" required>
+                                        <option value="">Seleccionar tipo...</option>
+                                        @foreach($dispatchTypes as $dispatchType)
+                                            <option value="{{ $dispatchType->id }}" data-requires-address="{{ $dispatchType->requires_address ? 1 : 0 }}"
+                                                {{ old('dispatch_type_id', isset($sale) ? $sale->dispatch_type_id : '') == $dispatchType->id ? 'selected' : '' }}>
+                                                {{ $dispatchType->name }}{{ ! $dispatchType->active ? ' (inactivo)' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('dispatch_type_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dispatch_address">Dirección de despacho <span id="dispatchAddressRequired" class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('dispatch_address') is-invalid @enderror"
+                                           id="dispatch_address" name="dispatch_address" maxlength="191"
+                                           value="{{ old('dispatch_address', isset($sale) ? $sale->dispatch_address : '') }}"
+                                           placeholder="Calle, número, comuna y ciudad">
+                                    @error('dispatch_address')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                                    <small id="dispatchAddressHelp" class="form-text text-muted"></small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label for="notes">Notas</label>
                             <textarea class="form-control" id="notes" name="notes" rows="3">{{ old('notes', isset($sale) ? $sale->notes : '') }}</textarea>
@@ -111,7 +140,7 @@
                                         <th>Producto</th>
                                         <th>Precio Unit.</th>
                                         <th>Cantidad</th>
-                                        <th>Comisión %</th>
+                                        <th>Comisión fija</th>
                                         <th>Subtotal</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -175,6 +204,19 @@
             $('.select2').select2({
                 theme: 'bootstrap'
             });
+
+            function updateDispatchAddressRequirement() {
+                const selected = $('#dispatch_type_id option:selected');
+                const requiresAddress = selected.val() && selected.data('requires-address') == 1;
+                $('#dispatch_address').prop('required', requiresAddress);
+                $('#dispatchAddressRequired').toggle(!!requiresAddress);
+                $('#dispatchAddressHelp').text(requiresAddress
+                    ? 'Obligatoria para el tipo de despacho seleccionado.'
+                    : 'Opcional para el tipo de despacho seleccionado.');
+            }
+
+            $('#dispatch_type_id').on('change', updateDispatchAddressRequirement);
+            updateDispatchAddressRequirement();
             
             // Si estamos duplicando una venta, cargar los productos originales
             @if(isset($originalProducts))
@@ -184,7 +226,7 @@
                         name: '{{ addslashes($detail->product->name) }}',
                         price: {{ $detail->unit_price }},
                         stock: {{ $detail->product->stock + $detail->quantity }}, // Stock actual + cantidad usada en venta original
-                        commission: {{ $detail->commission_percentage }},
+                        commission: {{ $detail->commission_unit_price ?? $detail->commission_percentage }},
                         quantity: {{ $detail->quantity }}
                     });
                 @endforeach
@@ -247,7 +289,7 @@
                                            min="1" max="${product.stock}" style="width: 80px;">
                                     <input type="hidden" name="products[${index}][quantity]" value="${product.quantity}">
                                 </td>
-                                <td>${product.commission}%</td>
+                                <td>$${numberFormat(product.commission)}</td>
                                 <td>$${numberFormat(product.price * product.quantity)}</td>
                                 <td>
                                     <button type="button" class="btn btn-danger btn-sm remove-product" data-index="${index}">
@@ -270,7 +312,7 @@
                 selectedProducts.forEach(product => {
                     const productSubtotal = product.price * product.quantity;
                     subtotal += productSubtotal;
-                    totalCommission += (productSubtotal * product.commission / 100);
+                    totalCommission += (product.commission * product.quantity);
                 });
                 
                 $('#subtotal').text('$' + numberFormat(subtotal));

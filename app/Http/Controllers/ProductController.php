@@ -58,7 +58,7 @@ class ProductController extends Controller
             'sku' => 'nullable|unique:products',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'commission_percentage' => 'nullable|numeric|min:0|max:100',
+            'commission' => 'nullable|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'calidad_id' => 'nullable|exists:calidad,id',
             'proveedor_id' => 'nullable|exists:proveedores,id',
@@ -69,11 +69,6 @@ class ProductController extends Controller
         $data = $request->all();
         $data['active'] = $request->has('active');
         
-        // Mapear commission_percentage a commission
-        if (isset($data['commission_percentage'])) {
-            $data['commission'] = $data['commission_percentage'];
-            unset($data['commission_percentage']);
-        }
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -117,7 +112,7 @@ class ProductController extends Controller
             'sku' => 'nullable|unique:products,sku,' . $product->id,
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'commission_percentage' => 'nullable|numeric|min:0|max:100',
+            'commission' => 'nullable|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
             'calidad_id' => 'nullable|exists:calidad,id',
             'proveedor_id' => 'nullable|exists:proveedores,id',
@@ -128,11 +123,6 @@ class ProductController extends Controller
         $data = $request->all();
         $data['active'] = $request->has('active');
         
-        // Mapear commission_percentage a commission
-        if (isset($data['commission_percentage'])) {
-            $data['commission'] = $data['commission_percentage'];
-            unset($data['commission_percentage']);
-        }
 
         if ($request->hasFile('image')) {
             // Delete old image

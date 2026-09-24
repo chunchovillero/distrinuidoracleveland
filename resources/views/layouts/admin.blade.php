@@ -103,8 +103,8 @@
                     </li>
 
                     <!-- Ventas -->
-                    <li class="nav-item {{ request()->is('admin/sales*') ? 'menu-open' : '' }}">
-                        <a href="#" class="nav-link {{ request()->is('admin/sales*') ? 'active' : '' }}">
+                    <li class="nav-item {{ request()->is('admin/sales*') || request()->is('admin/dispatch-types*') ? 'menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ request()->is('admin/sales*') || request()->is('admin/dispatch-types*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-cash-register"></i>
                             <p>
                                 Ventas
@@ -122,6 +122,12 @@
                                 <a href="{{ route('admin.sales.index') }}" class="nav-link {{ request()->routeIs('admin.sales.index') ? 'active' : '' }}">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>Listar Ventas</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.dispatch-types.index') }}" class="nav-link {{ request()->routeIs('admin.dispatch-types.*') ? 'active' : '' }}">
+                                    <i class="fas fa-truck nav-icon"></i>
+                                    <p>Tipos de Despacho</p>
                                 </a>
                             </li>
                         </ul>
@@ -248,7 +254,7 @@
                 
                 <!-- Alerts -->
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible">
+                    <div class="alert alert-success alert-dismissible flash-alert">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <h5><i class="icon fas fa-check"></i> ¡Éxito!</h5>
                         {{ session('success') }}
@@ -256,7 +262,7 @@
                 @endif
 
                 @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible">
+                    <div class="alert alert-danger alert-dismissible flash-alert">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <h5><i class="icon fas fa-ban"></i> Error</h5>
                         {{ session('error') }}
@@ -264,7 +270,7 @@
                 @endif
 
                 @if(session('warning'))
-                    <div class="alert alert-warning alert-dismissible">
+                    <div class="alert alert-warning alert-dismissible flash-alert">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <h5><i class="icon fas fa-exclamation-triangle"></i> Advertencia</h5>
                         {{ session('warning') }}
@@ -272,7 +278,7 @@
                 @endif
 
                 @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible">
+                    <div class="alert alert-danger alert-dismissible flash-alert">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                         <h5><i class="icon fas fa-ban"></i> Errores de validación</h5>
                         <ul class="mb-0">
@@ -349,6 +355,9 @@
             });
         }
 
+        @if(session("success") || session("error") || session("warning"))
+            Swal.fire({ toast: true, position: "top-end", icon: @json(session("success") ? "success" : (session("warning") ? "warning" : "error")), title: @json(session("success") ?? session("warning") ?? session("error")), showConfirmButton: false, timer: 4500, timerProgressBar: true });
+        @endif
         // Auto-hide alerts after 5 seconds
         setTimeout(function() {
             $('.alert').fadeOut('slow');

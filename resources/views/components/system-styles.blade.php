@@ -107,3 +107,14 @@ body {
 }
 @endif
 </style>
+<style>
+.flash-alert {
+    position: fixed !important;
+    top: 75px;
+    right: 24px;
+    z-index: 9999;
+    min-width: 320px;
+    max-width: 480px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+</style>

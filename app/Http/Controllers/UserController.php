@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Seller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,28 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    /**
+     * Roles que el usuario autenticado puede asignar.
+     */
+    private function assignableRoles(): array
+    {
+        if (auth()->user()->isSuperAdmin()) {
+            return User::ROLES;
+        }
+
+        return array_diff_key(User::ROLES, array_flip(['superadmin', 'admin']));
+    }
+
+    /**
+     * Un administrador común no puede modificar cuentas privilegiadas.
+     */
+    private function authorizeUserManagement(User $user): void
+    {
+        if (!auth()->user()->isSuperAdmin() && $user->isAdmin()) {
+            abort(403, 'Solo un superadministrador puede administrar cuentas privilegiadas.');
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -60,6 +83,7 @@ class UserController extends Controller
                 }
                 
                 $roleClass = [
+                    'superadmin' => 'dark',
                     'admin' => 'danger',
                     'manager' => 'warning', 
                     'seller' => 'info',
@@ -70,16 +94,22 @@ class UserController extends Controller
                 
                 $lastLoginHtml = $user->last_login_at ? $user->last_login_at->format('d/m/Y H:i') : 'Nunca';
                 
+                $canManageUser = auth()->user()->isSuperAdmin() || !$user->isAdmin();
+
                 $actionsHtml = '
                     <div class="btn-group" role="group">
                         <a href="' . route('admin.users.show', $user) . '" class="btn btn-info btn-sm" title="Ver">
                             <i class="fas fa-eye"></i>
-                        </a>
+                        </a>';
+
+                if ($canManageUser) {
+                    $actionsHtml .= '
                         <a href="' . route('admin.users.edit', $user) . '" class="btn btn-primary btn-sm" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>';
+                }
                 
-                if (!$user->isAdmin() || auth()->user()->isAdmin()) {
+                if ($canManageUser && $user->id !== auth()->id()) {
                     $actionsHtml .= '
                         <form action="' . route('admin.users.destroy', $user) . '" method="POST" style="display: inline;" onsubmit="return confirm(\'¿Está seguro de eliminar este usuario?\')">
                             ' . csrf_field() . '
@@ -119,7 +149,11 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('admin.users.create');
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Solo un superadministrador puede crear usuarios.');
+
+        $roles = $this->assignableRoles();
+
+        return view('admin.users.create', compact('roles'));
     }
 
     /**
@@ -127,12 +161,14 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        abort_unless(auth()->user()->isSuperAdmin(), 403, 'Solo un superadministrador puede crear usuarios.');
+
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8|confirmed',
-                'role' => ['required', Rule::in(array_keys(User::ROLES))],
+                'role' => ['required', Rule::in(array_keys($this->assignableRoles()))],
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
                 'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -157,6 +193,7 @@ class UserController extends Controller
             }
 
             $user = User::create($data);
+            if ($user->role === 'seller') { Seller::updateOrCreate(['email' => $user->email], ['name' => $user->name, 'active' => (bool) $user->active]); }
 
             return redirect()->route('admin.users.index')->with('success', 'Usuario creado exitosamente.');
             
@@ -184,7 +221,10 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $this->authorizeUserManagement($user);
+        $roles = $this->assignableRoles();
+
+        return view('admin.users.edit', compact('user', 'roles'));
     }
 
     /**
@@ -192,11 +232,13 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorizeUserManagement($user);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => ['required', Rule::in(array_keys(User::ROLES))],
+            'role' => ['required', Rule::in(array_keys($this->assignableRoles()))],
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -224,6 +266,8 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->refresh();
+        if ($user->role === 'seller') { Seller::updateOrCreate(['email' => $user->email], ['name' => $user->name, 'active' => (bool) $user->active]); }
 
         return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado exitosamente.');
     }
@@ -233,10 +277,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // No permitir eliminar administradores a menos que seas admin
-        if ($user->isAdmin() && !auth()->user()->isAdmin()) {
-            return redirect()->route('admin.users.index')->with('error', 'No tienes permisos para eliminar administradores.');
-        }
+        $this->authorizeUserManagement($user);
 
         // No permitir auto-eliminación
         if ($user->id === auth()->id()) {

@@ -216,6 +216,7 @@
             </div>
         </div>
     @endif
+    <div class="card mt-3"><div class="card-header"><h3 class="card-title"><i class="fas fa-trophy"></i> Calidades más vendidas</h3></div><div class="card-body"><form method="GET" class="form-inline mb-3"><label class="mr-2">Desde</label><input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control mr-2"><label class="mr-2">Hasta</label><input type="date" name="date_to" value="{{ $dateTo }}" class="form-control mr-2"><button class="btn btn-primary">Filtrar</button></form><div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Calidad</th><th>Unidades vendidas</th><th>Total vendido</th></tr></thead><tbody>@forelse($salesByCalidad as $item)<tr><td>{{ $item->calidad_nombre ?? "Sin Calidad" }}</td><td>{{ number_format($item->quantity_sold) }}</td><td>${{ number_format($item->total_sales, 0, ",", ".") }}</td></tr>@empty<tr><td colspan="3" class="text-center">No hay ventas completadas en el rango seleccionado.</td></tr>@endforelse</tbody></table></div></div></div>
 @stop
 
 @section('css')

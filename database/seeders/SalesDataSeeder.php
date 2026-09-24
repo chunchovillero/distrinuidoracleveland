@@ -73,9 +73,8 @@ class SalesDataSeeder extends Seeder
             $tax = $subtotal * 0.19; // 19% IVA
             $total = $subtotal + $tax;
             
-            // Calcular comisión (entre 5% y 15% del total)
-            $commissionPercentage = rand(5, 15);
-            $totalCommission = $total * ($commissionPercentage / 100);
+            // Calcular comisión fija por unidad usando los detalles de la venta.
+            $totalCommission = collect($currentSaleDetails)->sum(fn ($detail) => (float) $detail['commission_amount']);
             
             // Determinar método de pago aleatorio
             $paymentMethods = ['cash', 'card', 'transfer'];

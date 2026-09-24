@@ -310,6 +310,7 @@ return [
             'text' => 'Dashboard',
             'route' => 'admin.dashboard',
             'icon' => 'fas fa-fw fa-tachometer-alt',
+            'can' => 'view-dashboard',
             'class' => 'text-yellow',
         ],
 
@@ -319,7 +320,7 @@ return [
             'route' => 'admin.sales.create',
             'icon' => 'fas fa-fw fa-plus-circle',
             'class' => 'text-success',
-            'can' => 'manage-admin',
+            'can' => 'create-sales',
         ],
         [
             'text' => 'Ver Ventas',
@@ -329,11 +330,18 @@ return [
             'can' => 'view-sales',
         ],
         [
+            'text' => 'Tipos de Despacho',
+            'route' => 'admin.dispatch-types.index',
+            'icon' => 'fas fa-fw fa-truck',
+            'class' => 'text-info',
+            'can' => 'view-categories',
+        ],
+        [
             'text' => 'Nuevo Producto',
             'route' => 'admin.products.create',
             'icon' => 'fas fa-fw fa-plus-square',
             'class' => 'text-primary',
-            'can' => 'manage-admin',
+            'can' => 'create-products',
         ],
 
         ['header' => 'CATÁLOGO Y PRODUCTOS'],
@@ -352,7 +360,7 @@ return [
                     'text' => 'Nuevo Producto',
                     'route' => 'admin.products.create',
                     'icon' => 'fas fa-fw fa-plus',
-                    'can' => 'manage-admin',
+                    'can' => 'create-products',
                 ],
                 [
                     'text' => 'Categorías',
@@ -444,12 +452,12 @@ return [
             ],
         ],
 
-        ['header' => 'ADMINISTRACIÓN DEL SISTEMA', 'can' => 'manage-admin'],
+        ['header' => 'ADMINISTRACIÓN DEL SISTEMA', 'can' => 'manage-users'],
         [
             'text' => 'Gestión de Usuarios',
             'icon' => 'fas fa-fw fa-users-cog',
             'class' => 'text-danger',
-            'can' => 'manage-admin',
+            'can' => 'manage-users',
             'submenu' => [
                 [
                     'text' => 'Todos los Usuarios',
@@ -460,6 +468,7 @@ return [
                     'text' => 'Crear Usuario',
                     'route' => 'admin.users.create',
                     'icon' => 'fas fa-fw fa-user-plus',
+                    'can' => 'manage-admin',
                 ],
                 [
                     'text' => 'Administradores',
@@ -480,7 +489,7 @@ return [
             'route' => 'admin.configuration.index',
             'icon' => 'fas fa-fw fa-cogs',
             'class' => 'text-warning',
-            'can' => 'manage-admin',
+            'can' => 'manage-system',
         ],
         [
             'text' => 'Manual del Sistema',

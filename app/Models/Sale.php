@@ -12,11 +12,14 @@ class Sale extends Model
         'invoice_number',
         'customer_id',
         'seller_id',
+        'created_by_user_id',
         'subtotal',
         'tax',
         'total',
         'total_commission',
         'payment_method',
+        'dispatch_type_id',
+        'dispatch_address',
         'notes',
         'status',
         'sale_date'
@@ -44,6 +47,15 @@ class Sale extends Model
     public function seller(): BelongsTo
     {
         return $this->belongsTo(Seller::class);
+    }
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function dispatchType(): BelongsTo
+    {
+        return $this->belongsTo(DispatchType::class);
     }
 
     /**

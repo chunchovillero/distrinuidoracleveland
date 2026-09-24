@@ -21,19 +21,23 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Gate para administradores
+        // Operaciones exclusivas del superadministrador.
         Gate::define('manage-admin', function ($user) {
-            return $user->role === 'admin';
+            return $user->isSuperAdmin();
+        });
+
+        Gate::define('manage-system', function ($user) {
+            return $user->isSuperAdmin();
         });
 
         // Gate para gestión de usuarios
         Gate::define('manage-users', function ($user) {
-            return $user->role === 'admin';
+            return $user->isSuperAdmin();
         });
 
         // Gate para reportes avanzados
         Gate::define('view-advanced-reports', function ($user) {
-            return $user->role === 'admin';
+            return $user->isAdmin();
         });
 
         // Gate general para verificar si es admin

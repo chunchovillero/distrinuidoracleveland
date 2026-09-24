@@ -1,20 +1,31 @@
 @extends('adminlte::page')
 
+
 @section('title', 'Detalle de Venta')
 
 @section('content_header')
-    <h1>Venta #{{ $sale->invoice_number }}</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Venta #{{ $sale->invoice_number }}</h1>
+        <div class="no-print">
+            <a href="{{ route('admin.sales.pdf', $sale) }}" class="btn btn-danger mr-2"><i class="fas fa-file-pdf"></i> PDF</a>
+            <button type="button" class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+    </div>
 @stop
 
 @section('content')
+    @if(session('success'))<div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>¡Éxito!</strong> {{ session('success') }}</div>@endif
+    @if(session('error'))<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error:</strong> {{ session('error') }}</div>@endif
     <div class="row">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Información de la Venta</h3>
                     <div class="card-tools">
-                        <span class="badge badge-{{ $sale->status == 'completed' ? 'success' : ($sale->status == 'pending' ? 'warning' : 'danger') }}">
-                            {{ ucfirst($sale->status) }}
+                        <span class="badge badge-{{ $sale->status == 'completed' ? 'success' : (in_array($sale->status, ['pending', 'pending_authorization']) ? 'warning' : 'danger') }}">
+                            {{ ['completed' => 'Completada', 'pending_authorization' => 'En espera de autorización', 'pending' => 'Pendiente', 'cancelled' => 'Cancelada'][$sale->status] ?? ucfirst($sale->status) }}
                         </span>
                     </div>
                 </div>
@@ -63,15 +74,23 @@
                                             <i class="fas fa-money-check"></i> Cheque
                                             @break
                                         @default
-                                            {{ ucfirst($sale->payment_method) }}
+                                            {{ ['cash' => 'Efectivo', 'card' => 'Tarjeta', 'transfer' => 'Transferencia', 'check' => 'Cheque'][$sale->payment_method] ?? ucfirst($sale->payment_method) }}
                                     @endswitch
                                 </dd>
                                 
+                                <dt class="col-sm-5">Tipo de despacho:</dt>
+                                <dd class="col-sm-7">{{ $sale->dispatchType?->name ?? 'No informado' }}</dd>
+
+                                <dt class="col-sm-5">Dirección:</dt>
+                                <dd class="col-sm-7">{{ $sale->dispatch_address ?: 'No aplica' }}</dd>
+
                                 <dt class="col-sm-5">Estado:</dt>
                                 <dd class="col-sm-7">
                                     @if($sale->status == 'completed')
                                         <span class="badge badge-success">Completada</span>
-                                    @elseif($sale->status == 'pending')
+                                    @elseif($sale->status == 'pending_authorization')
+                                        <span class="badge badge-warning">En espera de autorización</span>
+                                @elseif($sale->status == 'pending')
                                         <span class="badge badge-warning">Pendiente</span>
                                     @else
                                         <span class="badge badge-danger">Cancelada</span>
@@ -105,7 +124,7 @@
                                     <th>Producto</th>
                                     <th>Precio Unit.</th>
                                     <th>Cantidad</th>
-                                    <th>Comisión %</th>
+                                    <th>Comisión fija/unidad</th>
                                     <th>Comisión $</th>
                                     <th>Subtotal</th>
                                 </tr>
@@ -122,7 +141,7 @@
                                         </td>
                                         <td>${{ number_format($detail->unit_price, 0, ',', '.') }}</td>
                                         <td>{{ $detail->quantity }}</td>
-                                        <td>{{ $detail->commission_percentage }}%</td>
+                                        <td>${{ number_format($detail->commission_unit_price ?? $detail->commission_percentage, 0, ",", ".") }}</td>
                                         <td>
                                             <span class="badge badge-success">
                                                 ${{ number_format($detail->commission_amount, 0, ',', '.') }}
@@ -187,12 +206,19 @@
             </div>
 
             <!-- Acciones -->
-            <div class="card">
+            <div class="card no-print">
                 <div class="card-header">
                     <h3 class="card-title">Acciones</h3>
                 </div>
                 <div class="card-body">
                     <div class="btn-group-vertical d-block">
+                        @if(auth()->user()->isAdmin() && $sale->status === 'pending_authorization')
+                            <form action="{{ route('admin.sales.authorize', $sale) }}" method="POST" onsubmit="return confirm('¿Autorizar esta venta y descontar stock?')">
+                                @csrf @method('PATCH')
+                                <button type="submit" class="btn btn-success btn-block"><i class="fas fa-check"></i> Autorizar Venta</button>
+                            </form>
+                        @endif
+                        @if(!auth()->user()->isSeller())
                         <a href="{{ route('admin.sales.duplicate', $sale) }}" class="btn btn-info btn-block">
                             <i class="fas fa-copy"></i> Duplicar Venta
                         </a>
@@ -208,6 +234,7 @@
                             </form>
                         @endif
                         
+                        @endif
                         <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary btn-block">
                             <i class="fas fa-arrow-left"></i> Volver a Lista
                         </a>
@@ -216,7 +243,7 @@
             </div>
 
             <!-- Información de auditoría -->
-            <div class="card">
+            <div class="card no-print">
                 <div class="card-header">
                     <h3 class="card-title">Información de Sistema</h3>
                 </div>
@@ -232,4 +259,31 @@
             </div>
         </div>
     </div>
+@stop
+@section('css')
+    <style>
+        @media print {
+            @page { margin: 1.2cm; }
+            .no-print,
+            .main-sidebar,
+            .main-header,
+            .content-header,
+            .main-footer,
+            .control-sidebar,
+            .navbar {
+                display: none !important;
+            }
+            body, .content-wrapper, .content {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .content-wrapper { min-height: 0 !important; }
+            .col-md-8 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; }
+            .col-md-4 { display: none !important; }
+            .card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+            .card-header { background: #f5f5f5 !important; color: #000 !important; }
+            a { color: #000 !important; text-decoration: none !important; }
+        }
+    </style>
 @stop

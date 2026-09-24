@@ -21,7 +21,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="name">Nombre del Producto *</label>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
                                            id="name" name="name" value="{{ old('name', $product->name) }}" required>
                                     @error('name')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -31,7 +31,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="sku">SKU</label>
-                                    <input type="text" class="form-control @error('sku') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('sku') is-invalid @enderror"
                                            id="sku" name="sku" value="{{ old('sku', $product->sku) }}">
                                     @error('sku')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -44,11 +44,11 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="category_id">Categoría *</label>
-                                    <select class="form-control @error('category_id') is-invalid @enderror" 
+                                    <select class="form-control @error('category_id') is-invalid @enderror"
                                             id="category_id" name="category_id" required>
                                         <option value="">Seleccionar categoría...</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" 
+                                            <option value="{{ $category->id }}"
                                                     {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
                                                 {{ $category->name }}
                                             </option>
@@ -62,11 +62,11 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="calidad_id">Calidad</label>
-                                    <select class="form-control @error('calidad_id') is-invalid @enderror" 
+                                    <select class="form-control @error('calidad_id') is-invalid @enderror"
                                             id="calidad_id" name="calidad_id">
                                         <option value="">Seleccionar calidad...</option>
                                         @foreach($calidades as $calidad)
-                                            <option value="{{ $calidad->id }}" 
+                                            <option value="{{ $calidad->id }}"
                                                     {{ old('calidad_id', $product->calidad_id) == $calidad->id ? 'selected' : '' }}>
                                                 {{ $calidad->nombre }}
                                             </option>
@@ -83,11 +83,11 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="proveedor_id">Proveedor</label>
-                                    <select class="form-control @error('proveedor_id') is-invalid @enderror" 
+                                    <select class="form-control @error('proveedor_id') is-invalid @enderror"
                                             id="proveedor_id" name="proveedor_id">
                                         <option value="">Seleccionar proveedor...</option>
                                         @foreach($proveedores as $proveedor)
-                                            <option value="{{ $proveedor->id }}" 
+                                            <option value="{{ $proveedor->id }}"
                                                     {{ old('proveedor_id', $product->proveedor_id) == $proveedor->id ? 'selected' : '' }}>
                                                 {{ $proveedor->nombre }}
                                             </option>
@@ -108,8 +108,8 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">$</span>
                                         </div>
-                                        <input type="number" class="form-control @error('price') is-invalid @enderror" 
-                                               id="price" name="price" value="{{ old('price', $product->price) }}" 
+                                        <input type="number" class="form-control @error('price') is-invalid @enderror"
+                                               id="price" name="price" value="{{ old('price', $product->price) }}"
                                                min="0" step="0.01" required>
                                         @error('price')
                                             <span class="invalid-feedback">{{ $message }}</span>
@@ -123,8 +123,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="stock">Stock *</label>
-                                    <input type="number" class="form-control @error('stock') is-invalid @enderror" 
-                                           id="stock" name="stock" value="{{ old('stock', $product->stock) }}" 
+                                    <input type="number" class="form-control @error('stock') is-invalid @enderror"
+                                           id="stock" name="stock" value="{{ old('stock', $product->stock) }}"
                                            min="0" required>
                                     @error('stock')
                                         <span class="invalid-feedback">{{ $message }}</span>
@@ -137,12 +137,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="commission_percentage">Porcentaje de Comisión (%)</label>
-                                    <input type="number" class="form-control @error('commission_percentage') is-invalid @enderror" 
-                                           id="commission_percentage" name="commission_percentage" 
-                                           value="{{ old('commission_percentage', $product->commission) }}" 
-                                           min="0" max="100" step="0.01">
-                                    @error('commission_percentage')
+                                    <label for="commission">Comisión fija por unidad</label>
+                                    <input type="number" class="form-control @error('commission') is-invalid @enderror"
+                                           id="commission" name="commission"
+                                           value="{{ old('commission', $product->commission) }}"
+                                           min="0" step="0.01">
+                                    @error('commission')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -163,7 +163,7 @@
 
                         <div class="form-group">
                             <label for="description">Descripción</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" 
+                            <textarea class="form-control @error('description') is-invalid @enderror"
                                       id="description" name="description" rows="4">{{ old('description', $product->description) }}</textarea>
                             @error('description')
                                 <span class="invalid-feedback">{{ $message }}</span>
@@ -174,7 +174,7 @@
                             <label for="image">Imagen del Producto</label>
                             <div class="input-group">
                                 <div class="custom-file">
-                                    <input type="file" class="custom-file-input @error('image') is-invalid @enderror" 
+                                    <input type="file" class="custom-file-input @error('image') is-invalid @enderror"
                                            id="image" name="image" accept="image/*">
                                     <label class="custom-file-label" for="image">Seleccionar imagen...</label>
                                 </div>
@@ -207,8 +207,8 @@
                         <h3 class="card-title">Imagen Actual</h3>
                     </div>
                     <div class="card-body text-center">
-                        <img src="{{ asset('images/products/' . $product->image) }}" 
-                             alt="{{ $product->name }}" 
+                        <img src="{{ asset('images/products/' . $product->image) }}"
+                             alt="{{ $product->name }}"
                              class="img-fluid rounded"
                              style="max-height: 200px;">
                         <div class="mt-2">
@@ -227,10 +227,10 @@
                     <dl class="row">
                         <dt class="col-sm-6">Creado:</dt>
                         <dd class="col-sm-6">{{ $product->created_at->format('d/m/Y H:i') }}</dd>
-                        
+
                         <dt class="col-sm-6">Actualizado:</dt>
                         <dd class="col-sm-6">{{ $product->updated_at->format('d/m/Y H:i') }}</dd>
-                        
+
                         <dt class="col-sm-6">Estado:</dt>
                         <dd class="col-sm-6">
                             @if($product->active)
@@ -256,7 +256,7 @@
                             <span class="info-box-number">{{ $product->saleDetails->sum('quantity') }}</span>
                         </div>
                     </div>
-                    
+
                     <div class="info-box">
                         <span class="info-box-icon bg-success"><i class="fas fa-dollar-sign"></i></span>
                         <div class="info-box-content">

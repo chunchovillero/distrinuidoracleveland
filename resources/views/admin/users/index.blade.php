@@ -11,9 +11,11 @@
         <div class="card-header">
             <h3 class="card-title">Lista de Usuarios</h3>
             <div class="card-tools">
-                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nuevo Usuario
-                </a>
+                @can('manage-admin')
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Nuevo Usuario
+                    </a>
+                @endcan
             </div>
         </div>
         

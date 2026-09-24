@@ -30,10 +30,12 @@
                             Lista de {{ $roleTitle }}s
                         </h3>
                         <div class="card-tools">
-                            <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus mr-1"></i>
-                                Nuevo Usuario
-                            </a>
+                            @can('manage-admin')
+                                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus mr-1"></i>
+                                    Nuevo Usuario
+                                </a>
+                            @endcan
                             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-list mr-1"></i>
                                 Todos los Usuarios
@@ -143,10 +145,12 @@
                                 <p class="text-muted">
                                     Aún no se han registrado usuarios con el rol de {{ strtolower($roleTitle) }}.
                                 </p>
-                                <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus mr-1"></i>
-                                    Crear Primer {{ $roleTitle }}
-                                </a>
+                                @can('manage-admin')
+                                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus mr-1"></i>
+                                        Crear Primer {{ $roleTitle }}
+                                    </a>
+                                @endcan
                             </div>
                         @endif
                     </div>

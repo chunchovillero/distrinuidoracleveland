@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Usuario Administrador
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@pos.com'],
             [
                 'name' => 'Administrador del Sistema',
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
         );
 
         // Usuario Gerente
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'gerente@pos.com'],
             [
                 'name' => 'Gerente General',
@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         );
 
         // Usuario Vendedor
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'vendedor@pos.com'],
             [
                 'name' => 'Juan Pérez',
@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
         );
 
         // Usuario Regular
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'usuario@pos.com'],
             [
                 'name' => 'María González',
@@ -67,7 +67,7 @@ class UserSeeder extends Seeder
         );
 
         // Usuario Vendedor Adicional
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'carlos@pos.com'],
             [
                 'name' => 'Carlos Silva',

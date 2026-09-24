@@ -79,7 +79,7 @@
                             <label for="role">Rol *</label>
                             <select class="form-control @error('role') is-invalid @enderror" id="role" name="role" required>
                                 <option value="">Seleccionar rol...</option>
-                                @foreach(App\Models\User::ROLES as $value => $label)
+                                @foreach($roles as $value => $label)
                                     <option value="{{ $value }}" {{ old('role') == $value ? 'selected' : '' }}>
                                         {{ $label }}
                                     </option>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
@@ -10,6 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DispatchTypeController;
 use Illuminate\Support\Facades\Auth;
 
 // Rutas del catálogo público
@@ -18,8 +19,8 @@ Route::get('/catalog/{product}', [CatalogController::class, 'show'])->name('cata
 Route::get('/catalog/{product}/whatsapp', [CatalogController::class, 'generateWhatsAppMessage'])->name('catalog.whatsapp');
 Route::get('/api/catalog/search', [CatalogController::class, 'search'])->name('catalog.search');
 
-// Rutas administrativas (protegidas por autenticación)
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+// Rutas administrativas (solo administradores autenticados)
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:superadmin,admin,seller'])->group(function () {
     
     // Dashboard con permiso específico
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:view_dashboard');
@@ -30,8 +31,8 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     })->name('manual.index');
     
     // Configuración del sistema
-    Route::get('/configuration', [App\Http\Controllers\SystemConfigurationController::class, 'index'])->name('configuration.index')->middleware('role:admin');
-    Route::put('/configuration', [App\Http\Controllers\SystemConfigurationController::class, 'update'])->name('configuration.update')->middleware('role:admin');
+    Route::get('/configuration', [App\Http\Controllers\SystemConfigurationController::class, 'index'])->name('configuration.index')->middleware('role:superadmin');
+    Route::put('/configuration', [App\Http\Controllers\SystemConfigurationController::class, 'update'])->name('configuration.update')->middleware('role:superadmin');
     
     // Consulta de ventas con permisos específicos
     Route::get('sales', [SaleController::class, 'index'])->name('sales.index')->middleware('permission:view_sales');
@@ -40,6 +41,17 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('sales/export-config', [SaleController::class, 'saveExportConfig'])->name('sales.save-export-config')->middleware('permission:export_sales');
     Route::post('sales/export', [SaleController::class, 'exportSales'])->name('sales.export')->middleware('permission:export_sales');
     Route::get('sales/{sale}', [SaleController::class, 'show'])->name('sales.show')->middleware('permission:view_sales');
+    Route::get('sales/{sale}/pdf', [SaleController::class, 'pdf'])->name('sales.pdf')->middleware('permission:view_sales');
+    Route::patch('sales/{sale}/authorize', [SaleController::class, 'authorizeSale'])->name('sales.authorize')->middleware('role:superadmin,admin');
+
+    // Tipos de despacho
+    Route::get('dispatch-types', [DispatchTypeController::class, 'index'])->name('dispatch-types.index')->middleware('permission:view_categories');
+    Route::get('dispatch-types/create', [DispatchTypeController::class, 'create'])->name('dispatch-types.create')->middleware('permission:create_categories');
+    Route::post('dispatch-types', [DispatchTypeController::class, 'store'])->name('dispatch-types.store')->middleware('permission:create_categories');
+    Route::get('dispatch-types/{dispatchType}/edit', [DispatchTypeController::class, 'edit'])->name('dispatch-types.edit')->middleware('permission:edit_categories');
+    Route::put('dispatch-types/{dispatchType}', [DispatchTypeController::class, 'update'])->name('dispatch-types.update')->middleware('permission:edit_categories');
+    Route::patch('dispatch-types/{dispatchType}/toggle-status', [DispatchTypeController::class, 'toggleStatus'])->name('dispatch-types.toggle-status')->middleware('permission:edit_categories');
+    Route::delete('dispatch-types/{dispatchType}', [DispatchTypeController::class, 'destroy'])->name('dispatch-types.destroy')->middleware('permission:delete_categories');
     
     // Consultas básicas con permisos específicos
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index')->middleware('permission:view_customers');
@@ -130,7 +142,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/api/products/{id}/details', [SaleController::class, 'getProductDetails'])->name('products.details');
 
     // Rutas solo para administradores (gestión de usuarios)
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:superadmin')->group(function () {
         // Gestión de usuarios
         Route::resource('users', UserController::class);
         Route::get('users/role/{role}', [UserController::class, 'byRole'])->name('users.by-role');
@@ -146,7 +158,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
 // Rutas de autenticación dentro del prefijo admin
 Route::prefix('admin')->group(function () {
-    Auth::routes();
+    Auth::routes(['register' => false]);
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

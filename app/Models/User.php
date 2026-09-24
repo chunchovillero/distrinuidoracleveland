@@ -59,7 +59,10 @@ class User extends Authenticatable
      * Roles disponibles en el sistema
      */
     const ROLES = [
+        'superadmin' => 'Superadministrador',
         'admin' => 'Administrador',
+        'manager' => 'Gerente',
+        'seller' => 'Vendedor',
         'user' => 'Usuario'
     ];
 
@@ -68,15 +71,28 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['superadmin', 'admin'], true);
+    }
+
+    /**
+     * Verificar si el usuario tiene control total del sistema.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
     }
 
     /**
      * Verificar si el usuario puede gestionar usuarios
      */
+    public function isSeller(): bool
+    {
+        return $this->role === 'seller';
+    }
+
     public function canManageUsers(): bool
     {
-        return $this->role === 'admin';
+        return $this->isSuperAdmin();
     }
 
     /**
@@ -114,6 +130,11 @@ class User extends Authenticatable
         // Los admins tienen todos los permisos
         if ($this->isAdmin()) {
             return true;
+        }
+
+        // El vendedor solo tiene acceso al listado y creación de ventas.
+        if ($this->isSeller()) {
+            return in_array($permission, ['view_sales', 'create_sales'], true);
         }
 
         // Verificar permiso específico

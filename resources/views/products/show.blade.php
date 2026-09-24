@@ -64,7 +64,7 @@
                                 </dd>
                                 
                                 <dt class="col-sm-4">Comisión:</dt>
-                                <dd class="col-sm-8">{{ number_format($product->commission, 2) }}%</dd>
+                                <dd class="col-sm-8">${{ number_format($product->commission, 0, ",", ".") }}</dd>
                                 
                                 <dt class="col-sm-4">Estado:</dt>
                                 <dd class="col-sm-8">

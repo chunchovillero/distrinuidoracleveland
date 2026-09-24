@@ -247,7 +247,7 @@
                                                         id="role" 
                                                         name="role" 
                                                         required>
-                                                    @foreach(\App\Models\User::ROLES as $roleKey => $roleName)
+                                                    @foreach($roles as $roleKey => $roleName)
                                                         <option value="{{ $roleKey }}" {{ old('role', $user->role) == $roleKey ? 'selected' : '' }}>
                                                             {{ $roleName }}
                                                         </option>
