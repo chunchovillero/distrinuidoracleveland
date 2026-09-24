@@ -97,10 +97,8 @@
                     <button type="button" class="btn btn-info btn-sm" onclick="showExportModal('secretaria')">
                         <i class="fas fa-file-excel"></i> Exportar Excel - Secretaría
                     </button>
-                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm">
                     <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Venta</a>
                 @can('create-sales')
-                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus"></i> Nueva Venta
                     </a>
                 @endcan
