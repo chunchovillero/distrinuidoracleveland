@@ -368,5 +368,6 @@
 
 @stack('scripts')
 
+<script>if ("serviceWorker" in navigator) { navigator.serviceWorker.register("{{ url(/service-worker.js) }}"); }</script>
 </body>
 </html>
