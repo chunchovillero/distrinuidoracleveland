@@ -344,7 +344,7 @@ return [
             'can' => 'create-products',
         ],
 
-        ['header' => 'CATÁLOGO Y PRODUCTOS'],
+        ['header' => 'CATÁLOGO Y PRODUCTOS', 'can' => 'manage-system'],
         [
             'text' => 'Gestión de Productos',
             'icon' => 'fas fa-fw fa-cube',
@@ -377,7 +377,7 @@ return [
             ],
         ],
 
-        ['header' => 'RELACIONES COMERCIALES'],
+        ['header' => 'RELACIONES COMERCIALES', 'can' => 'manage-system'],
         [
             'text' => 'Clientes',
             'route' => 'admin.customers.index',
@@ -400,7 +400,7 @@ return [
             'can' => 'view-sellers',
         ],
 
-        ['header' => 'ANÁLISIS Y REPORTES'],
+        ['header' => 'ANÁLISIS Y REPORTES', 'can' => 'manage-system'],
         [
             'text' => 'Reportes Ejecutivos',
             'icon' => 'fas fa-fw fa-chart-line',
@@ -483,7 +483,7 @@ return [
             ],
         ],
 
-        ['header' => 'HERRAMIENTAS'],
+        ['header' => 'HERRAMIENTAS', 'can' => 'manage-system'],
         [
             'text' => 'Configuración',
             'route' => 'admin.configuration.index',
@@ -493,12 +493,14 @@ return [
         ],
         [
             'text' => 'Manual del Sistema',
+            'can' => 'manage-system',
             'route' => 'admin.manual.index',
             'icon' => 'fas fa-fw fa-book',
             'class' => 'text-success',
         ],
         [
             'text' => 'Catálogo Público',
+            'can' => 'manage-system',
             'url' => '/',
             'icon' => 'fas fa-fw fa-external-link-alt',
             'target' => '_blank',
