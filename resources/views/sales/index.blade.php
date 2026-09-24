@@ -89,17 +89,13 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Ventas Registradas</h3>
-            <div class="card-tools">
                 @can('manage-admin')
-                    <button type="button" class="btn btn-success btn-sm" onclick="showExportModal('despacho')">
-                        <i class="fas fa-truck"></i> Exportar Excel - Despacho
-                    </button>
-                    <button type="button" class="btn btn-info btn-sm" onclick="showExportModal('secretaria')">
-                        <i class="fas fa-file-excel"></i> Exportar Excel - Secretaría
-                    </button>
-                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Venta</a>
+                    <button type="button" class="btn btn-success btn-sm" onclick="showExportModal('despacho')"><i class="fas fa-truck"></i> Exportar Excel - Despacho</button>
+                    <button type="button" class="btn btn-info btn-sm" onclick="showExportModal('secretaria')"><i class="fas fa-file-excel"></i> Exportar Excel - Secretaría</button>
+                @endcan
                 @can('create-sales')
-                        <i class="fas fa-plus"></i> Nueva Venta
+                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Venta</a>
+                @endcan
                     </a>
                 @endcan
             </div>
