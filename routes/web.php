@@ -145,6 +145,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:superadmin,adm
     Route::middleware('role:superadmin')->group(function () {
         // Gestión de usuarios
         Route::resource('users', UserController::class);
+        Route::get('profile', fn () => redirect()->route('admin.users.edit', auth()->user()))->name('profile');
         Route::get('users/role/{role}', [UserController::class, 'byRole'])->name('users.by-role');
         
         // Gestión de permisos de usuarios

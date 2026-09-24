@@ -28,7 +28,7 @@ class UserController extends Controller
      */
     private function authorizeUserManagement(User $user): void
     {
-        if (!auth()->user()->isSuperAdmin() && $user->isAdmin()) {
+        if (auth()->id() !== $user->id && !auth()->user()->isSuperAdmin() && $user->isAdmin()) {
             abort(403, 'Solo un superadministrador puede administrar cuentas privilegiadas.');
         }
     }
@@ -176,6 +176,7 @@ class UserController extends Controller
             ]);
 
             $data = $request->all();
+        if (auth()->id() === $user->id) { $data['role'] = $user->role; $data['active'] = $user->active; }
             $data['password'] = Hash::make($request->password);
             // Con el campo hidden, siempre recibiremos un valor para 'active'
             $data['active'] = $request->input('active', 1) == '1' ? 1 : 0;
@@ -246,6 +247,7 @@ class UserController extends Controller
         ]);
 
         $data = $request->all();
+        if (auth()->id() === $user->id) { $data['role'] = $user->role; $data['active'] = $user->active; }
         $data['active'] = $request->input('active', 0) == '1' ? 1 : 0;
 
         if ($request->filled('password')) {
