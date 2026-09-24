@@ -14,7 +14,7 @@ use App\Http\Controllers\DispatchTypeController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/manifest.json', function () { return response()->json(['name'=>'Sistema POS','short_name'=>'POS','start_url'=>'/admin','display'=>'standalone','theme_color'=>'#343a40','background_color'=>'#343a40','icons'=>[['src'=>'/pwa-icon.svg','sizes'=>'any','type'=>'image/svg+xml']]]); });
-Route::get('/pwa-icon.svg', function () { return response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#343a40"/><text x="256" y="300" text-anchor="middle" fill="white" font-size="120">POS</text></svg>',200,['Content-Type'=>'image/svg+xml']); });
+Route::get('/pwa-icon.svg', function () { return response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="black"/><text x="256" y="300" text-anchor="middle" fill="white" font-size="120">Cleveland</text></svg>',200,['Content-Type'=>'image/svg+xml']); });
 Route::get('/service-worker.js', function () { return response("self.addEventListener('fetch',e=>e.respondWith(fetch(e.request)));",200,['Content-Type'=>'application/javascript']); });
 // Rutas del catálogo público
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
