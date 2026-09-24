@@ -85,6 +85,11 @@ class User extends Authenticatable
     /**
      * Verificar si el usuario puede gestionar usuarios
      */
+    public function adminlte_profile_url(): string
+    {
+        return route('admin.profile');
+    }
+
     public function isSeller(): bool
     {
         return $this->role === 'seller';
