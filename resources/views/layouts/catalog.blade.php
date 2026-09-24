@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="{{ url(/manifest.json) }}"><meta name="theme-color" content="#000000">
     <title>@yield('title', 'Catálogo - ' . ($systemConfig['company_name'] ?? 'Sistema POS'))</title>
     
     <!-- Bootstrap CSS -->
@@ -124,5 +125,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     @stack('scripts')
+<script>if ("serviceWorker" in navigator) { navigator.serviceWorker.register("{{ url(/service-worker.js) }}"); }</script>
 </body>
 </html>
