@@ -15,76 +15,11 @@
             </div>
         </div>
     </div>
-@stop
-
-@section('content')
-    <div class="container-fluid">
-        <!-- Estadísticas de usuarios: exclusivas del superadministrador -->
-        @if(auth()->user()->isSuperAdmin())
         <div class="row">
-            <!-- Total Users -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ \App\Models\User::count() }}</h3>
-                        <p>Usuarios</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-person-add"></i>
-                    </div>
-                    <a href="{{ route('admin.users.index') }}" class="small-box-footer">
-                        Ver más <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Active Users -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ \App\Models\User::where('active', true)->count() }}</h3>
-                        <p>Usuarios Activos</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-checkmark-circled"></i>
-                    </div>
-                    <a href="{{ route('admin.users.index') }}" class="small-box-footer">
-                        Ver más <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Admin Users -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>{{ \App\Models\User::where('role', 'admin')->count() }}</h3>
-                        <p>Administradores</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-gear-a"></i>
-                    </div>
-                    <a href="{{ route('admin.users.index') }}" class="small-box-footer">
-                        Ver más <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- System Status -->
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>Online</h3>
-                        <p>Sistema POS</p>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-stats-bars"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                        Sistema Activo <i class="fas fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
+            <div class="col-lg-3 col-6"><div class="small-box bg-primary"><div class="inner"><h3>{{ $metrics["totalSales"] }}</h3><p>Ventas completadas</p></div><div class="icon"><i class="fas fa-shopping-cart"></i></div><a href="{{ route("admin.sales.index") }}" class="small-box-footer">Ver ventas <i class="fas fa-arrow-circle-right"></i></a></div></div>
+            <div class="col-lg-3 col-6"><div class="small-box bg-success"><div class="inner"><h3>{{ $metrics["salesToday"] }}</h3><p>Ventas de hoy</p></div><div class="icon"><i class="fas fa-cash-register"></i></div><a href="{{ route("admin.sales.index") }}" class="small-box-footer">Ver ventas <i class="fas fa-arrow-circle-right"></i></a></div></div>
+            <div class="col-lg-3 col-6"><div class="small-box bg-info"><div class="inner"><h3>{{ $metrics["totalProducts"] }}</h3><p>Productos activos</p></div><div class="icon"><i class="fas fa-boxes"></i></div><a href="{{ route("admin.products.index") }}" class="small-box-footer">Ver productos <i class="fas fa-arrow-circle-right"></i></a></div></div>
+            <div class="col-lg-3 col-6"><div class="small-box bg-warning"><div class="inner"><h3>{{ $metrics["lowStockProducts"] }}</h3><p>Productos con stock bajo</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><a href="{{ route("admin.products.index") }}" class="small-box-footer">Revisar stock <i class="fas fa-arrow-circle-right"></i></a></div></div>
         </div>
         @endif
 

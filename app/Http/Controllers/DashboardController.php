@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Sale;
+use App\Models\Product;
 
 class DashboardController extends Controller
 {
@@ -24,6 +26,13 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        return view('admin.dashboard');
+        $metrics = [
+            'totalSales' => Sale::where('status', 'completed')->count(),
+            'salesToday' => Sale::whereDate('sale_date', today())->where('status', 'completed')->count(),
+            'totalProducts' => Product::where('active', true)->count(),
+            'lowStockProducts' => Product::whereColumn('stock', '<=', 'min_stock')->where('active', true)->count(),
+            'salesAmount' => Sale::where('status', 'completed')->sum('total'),
+        ];
+        return view('admin.dashboard', compact('metrics'));
     }
 }
