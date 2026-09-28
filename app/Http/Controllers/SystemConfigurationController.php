@@ -76,6 +76,7 @@ class SystemConfigurationController extends Controller
                 
                 // Features
                 'enable_whatsapp' => ['value' => $request->has('enable_whatsapp') ? '1' : '0', 'type' => 'boolean', 'group' => 'features', 'label' => 'Habilitar WhatsApp'],
+                'whatsapp_number' => ['value' => preg_replace('/D+/', '', (string) $request->whatsapp_number), 'type' => 'text', 'group' => 'features', 'label' => 'Número de WhatsApp del Catálogo'],
                 'enable_catalog' => ['value' => $request->has('enable_catalog') ? '1' : '0', 'type' => 'boolean', 'group' => 'features', 'label' => 'Habilitar Catálogo Público'],
                 'maintenance_mode' => ['value' => $request->has('maintenance_mode') ? '1' : '0', 'type' => 'boolean', 'group' => 'features', 'label' => 'Modo Mantenimiento'],
             ];
@@ -127,6 +128,7 @@ class SystemConfigurationController extends Controller
             
             // Features
             ['key' => 'enable_whatsapp', 'value' => '1', 'type' => 'boolean', 'group' => 'features', 'label' => 'Habilitar WhatsApp'],
+            ['key' => 'whatsapp_number', 'value' => '573001234567', 'type' => 'text', 'group' => 'features', 'label' => 'Número de WhatsApp del Catálogo'],
             ['key' => 'enable_catalog', 'value' => '1', 'type' => 'boolean', 'group' => 'features', 'label' => 'Habilitar Catálogo Público'],
             ['key' => 'maintenance_mode', 'value' => '0', 'type' => 'boolean', 'group' => 'features', 'label' => 'Modo Mantenimiento'],
         ];

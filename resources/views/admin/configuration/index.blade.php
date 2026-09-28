@@ -213,6 +213,7 @@
                         <h3 class="card-title"><i class="fas fa-toggle-on"></i> Características del Sistema</h3>
                     </div>
                     <div class="card-body">
+                        <div class="form-group"><label for="whatsapp_number">Número de WhatsApp del Catálogo</label><input type="text" class="form-control" id="whatsapp_number" name="whatsapp_number" value="{{ old('whatsapp_number', optional($configurations['features']->where('key', 'whatsapp_number')->first())->value ?? config('app.whatsapp_number')) }}"><small class="form-text text-muted">Solo números con código de país.</small></div>
                         <!-- Enable WhatsApp -->
                         <div class="form-group">
                             <div class="custom-control custom-switch">

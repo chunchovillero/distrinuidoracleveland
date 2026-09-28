@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\SystemConfiguration;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
@@ -74,7 +75,7 @@ class CatalogController extends Controller
         $message .= "Gracias!";
 
         // Número de WhatsApp de la empresa (configurable)
-        $whatsappNumber = config('app.whatsapp_number', '573001234567');
+        $whatsappNumber = preg_replace('/D+/', '', SystemConfiguration::getValue('whatsapp_number', config('app.whatsapp_number', '573001234567')));
         
         $whatsappUrl = "https://wa.me/{$whatsappNumber}?text=" . urlencode($message);
 
