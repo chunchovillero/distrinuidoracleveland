@@ -105,7 +105,7 @@
                     <p class="mb-0">Catálogo de productos disponibles</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="https://wa.me/{{ config('app.whatsapp_number') }}" target="_blank" class="btn btn-success btn-sm">
+                    <a href="https://wa.me/{{ AppModelsSystemConfiguration::getValue('whatsapp_number', config('app.whatsapp_number')) }}" target="_blank" class="btn btn-success btn-sm">
                         <i class="fab fa-whatsapp"></i> Contáctanos por WhatsApp
                     </a>
                 </div>
