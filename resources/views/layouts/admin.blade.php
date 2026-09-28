@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="manifest" href="{{ url(/manifest.json) }}"><meta name="theme-color" content="#343a40">
+    <link rel="manifest" href="{{ url('/manifest.json') }}"><meta name="theme-color" content="#343a40">
         <title>@yield('title', $systemConfig['company_name'] ?? 'Sistema POS')</title>
 
     <!-- Google Font: Source Sans Pro -->
@@ -368,6 +368,6 @@
 
 @stack('scripts')
 
-<script>if ("serviceWorker" in navigator) { navigator.serviceWorker.register("{{ url(/service-worker.js) }}"); }</script>
+<script>if ("serviceWorker" in navigator) { navigator.serviceWorker.register("{{ url('/service-worker.js') }}"); }</script>
 </body>
 </html>
