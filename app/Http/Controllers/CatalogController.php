@@ -75,7 +75,7 @@ class CatalogController extends Controller
         $message .= "Gracias!";
 
         // Número de WhatsApp de la empresa (configurable)
-        $whatsappNumber = preg_replace('/D+/', '', SystemConfiguration::getValue('whatsapp_number', config('app.whatsapp_number', '573001234567')));
+        $whatsappNumber = preg_replace('/\D+/', '', SystemConfiguration::getValue('whatsapp_number', config('app.whatsapp_number', '573001234567')));
         
         $whatsappUrl = "https://wa.me/{$whatsappNumber}?text=" . urlencode($message);
 
