@@ -22,6 +22,7 @@
     @stack('styles')
     
     <style>
+        :root { --catalog-primary: {{ $systemConfig['primary_color'] ?? '#007bff' }}; --catalog-secondary: {{ $systemConfig['secondary_color'] ?? '#6c757d' }}; --catalog-accent: {{ $systemConfig['accent_color'] ?? '#28a745' }}; }
         .product-card {
             transition: transform 0.2s;
         }
@@ -31,11 +32,11 @@
         .product-image {
             height: 200px;
             object-fit: cover;
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--catalog-primary) 8%, white);
         }
         .whatsapp-btn {
-            background-color: #25D366;
-            border-color: #25D366;
+            background-color: var(--catalog-accent);
+            border-color: var(--catalog-accent);
         }
         .whatsapp-btn:hover {
             background-color: #128C7E;
@@ -45,12 +46,12 @@
             font-weight: bold;
         }
         .search-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--catalog-primary), var(--catalog-secondary));
             color: white;
             padding: 60px 0;
         }
         .category-filter {
-            background-color: #f8f9fa;
+            background-color: color-mix(in srgb, var(--catalog-primary) 8%, white);
             padding: 20px 0;
         }
     </style>
