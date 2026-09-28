@@ -21,7 +21,6 @@
             <div class="col-lg-3 col-6"><div class="small-box bg-info"><div class="inner"><h3>{{ $metrics["totalProducts"] }}</h3><p>Productos activos</p></div><div class="icon"><i class="fas fa-boxes"></i></div><a href="{{ route("admin.products.index") }}" class="small-box-footer">Ver productos <i class="fas fa-arrow-circle-right"></i></a></div></div>
             <div class="col-lg-3 col-6"><div class="small-box bg-warning"><div class="inner"><h3>{{ $metrics["lowStockProducts"] }}</h3><p>Productos con stock bajo</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div><a href="{{ route("admin.products.index") }}" class="small-box-footer">Revisar stock <i class="fas fa-arrow-circle-right"></i></a></div></div>
         </div>
-        @endif
 
         <!-- Dashboard Content -->
         <div class="row">
