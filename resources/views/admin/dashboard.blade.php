@@ -111,36 +111,10 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            @if(auth()->user()->isSuperAdmin())
-                                <div class="col-md-3">
-                                    <a href="{{ route('admin.users.create') }}" class="btn btn-app">
-                                        <i class="fas fa-user-plus"></i>
-                                        Nuevo Usuario
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="{{ route('admin.users.index') }}" class="btn btn-app">
-                                        <i class="fas fa-list"></i>
-                                        Lista Usuarios
-                                    </a>
-                                </div>
-                            @endif
-                            
-                            <div class="col-md-3">
-                                <a href="#" class="btn btn-app">
-                                    <i class="fas fa-chart-bar"></i>
-                                    Reportes
-                                </a>
-                            </div>
-                            
-                            <div class="col-md-3">
-                                <a href="#" class="btn btn-app">
-                                    <i class="fas fa-cog"></i>
-                                    Configuración
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                            <div class="col-md-3 col-6"><a href="{{ route('admin.sales.create') }}" class="btn btn-app"><i class="fas fa-plus-circle"></i>Nueva Venta</a></div>
+                            <div class="col-md-3 col-6"><a href="{{ route('admin.sales.index') }}" class="btn btn-app"><i class="fas fa-shopping-cart"></i>Ver Ventas</a></div>
+                            <div class="col-md-3 col-6"><a href="{{ route('admin.products.create') }}" class="btn btn-app"><i class="fas fa-box-open"></i>Nuevo Producto</a></div>
+                            <div class="col-md-3 col-6"><a href="{{ route('admin.products.index') }}" class="btn btn-app"><i class="fas fa-boxes"></i>Gestión de Productos</a></div>
                 </div>
             </div>
         </div>
